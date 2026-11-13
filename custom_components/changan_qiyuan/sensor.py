@@ -1,7 +1,7 @@
 import math
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from .entity import VehicleEntity
-from .coordinator import timestamp, location_coordinates
+from .coordinator import timestamp, fresh
 
 FIELDS = [("soc", "电池电量", "%", "battery"), ("remainedPowerMile", "纯电续航", "km", "distance"),
     ("remainedOilMile", "燃油续航", "km", "distance"), ("totalOdometer", "总里程", "km", "distance"),
@@ -36,8 +36,13 @@ class VehicleSensor(VehicleEntity, SensorEntity):
         if self.key == "driving":
             return "未知"
         if self.key in ("latitude", "longitude"):
-            coordinates = location_coordinates(self.coordinator.data["location"])
-            return coordinates[0 if self.key == "latitude" else 1] if coordinates else None
+            data = self.coordinator.data["location"]
+            try:
+                value = float(data["lat" if self.key == "latitude" else "lng"])
+                limit = 90 if self.key == "latitude" else 180
+                return value if math.isfinite(value) and -limit <= value <= limit else None
+            except (KeyError, TypeError, ValueError):
+                return None
         source = "location" if self.key in ("city", "address", "gpsTime") else "condition"
         value = self.coordinator.data[source].get(self.key)
         if self.key == "gpsTime":
@@ -59,7 +64,10 @@ class VehicleSensor(VehicleEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         if self.key in ("latitude", "longitude"):
-            return {"coordinate_system": "WGS84", "gps_time": self.coordinator.data["location"].get("gpsTime")}
+            data = self.coordinator.data["location"]
+            return {"coordinate_system": "GCJ-02", "gps_time": data.get("gpsTime"),
+                    "valid_gps": data.get("validGps"), "stale": not fresh(data.get("gpsTime")),
+                    "location_status": self.coordinator.data.get("location_status", "unknown")}
         data = self.coordinator.data["condition"]
         if self.key == "driving":
             return {k: data.get(k) for k in ("carStatus", "status", "vehicleSpeed", "lastUpdatedTime")}

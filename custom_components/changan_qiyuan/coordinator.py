@@ -39,14 +39,16 @@ class Coordinator(DataUpdateCoordinator):
         try:
             condition = await self.api.get()
             location = {}
+            location_status = "disabled"
             if self.entry.options.get("gps", self.entry.data.get("gps", False)):
                 try:
                     location = await self.api.get(True)
+                    location_status = "received"
                 except AuthError:
                     raise
                 except ApiError:
-                    pass
-            return {"condition": condition, "location": location}
+                    location_status = "request_failed"
+            return {"condition": condition, "location": location, "location_status": location_status}
         except AuthError:
             raise ConfigEntryAuthFailed("Update credentials") from None
         except ApiError:
