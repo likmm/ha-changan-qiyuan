@@ -4,6 +4,7 @@ import logging
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from .api import ApiError, AuthError
+from .geo import to_wgs84
 
 def timestamp(value):
     try:
@@ -15,6 +16,18 @@ def timestamp(value):
 def fresh(value):
     parsed = timestamp(value)
     return parsed is not None and -300 <= (datetime.now(parsed.tzinfo)-parsed).total_seconds() <= 1800
+
+def location_coordinates(data):
+    """Return validated, fresh WGS84 coordinates or no location."""
+    if data.get("validGps") is not True or not fresh(data.get("gpsTime")):
+        return None
+    try:
+        lat, lon = float(data["lat"]), float(data["lng"])
+        if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+            return None
+        return to_wgs84(lat, lon)
+    except (KeyError, TypeError, ValueError):
+        return None
 
 class Coordinator(DataUpdateCoordinator):
     def __init__(self, hass, entry, api):

@@ -1,8 +1,7 @@
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.components.device_tracker import SourceType
 from .entity import VehicleEntity
-from .coordinator import fresh
-from .geo import to_wgs84
+from .coordinator import location_coordinates
 
 async def async_setup_entry(hass, entry, async_add_entities):
     if entry.options.get("gps", entry.data.get("gps", False)):
@@ -14,16 +13,7 @@ class VehicleTracker(VehicleEntity, TrackerEntity):
 
     @property
     def coordinates(self):
-        d = self.coordinator.data["location"]
-        if d.get("validGps") is not True or not fresh(d.get("gpsTime")):
-            return None
-        try:
-            lat, lon = float(d["lat"]), float(d["lng"])
-            if not (-90 <= lat <= 90 and -180 <= lon <= 180):
-                return None
-            return to_wgs84(lat, lon)
-        except (KeyError, TypeError, ValueError):
-            return None
+        return location_coordinates(self.coordinator.data["location"])
 
     @property
     def available(self):

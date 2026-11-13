@@ -1,14 +1,14 @@
 import math
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from .entity import VehicleEntity
-from .coordinator import timestamp
+from .coordinator import timestamp, location_coordinates
 
 FIELDS = [("soc", "电池电量", "%", "battery"), ("remainedPowerMile", "纯电续航", "km", "distance"),
     ("remainedOilMile", "燃油续航", "km", "distance"), ("totalOdometer", "总里程", "km", "distance"),
     ("lfTyrePressure", "左前胎压", None, None), ("rfTyrePressure", "右前胎压", None, None),
     ("lrTyrePressure", "左后胎压", None, None), ("rrTyrePressure", "右后胎压", None, None),
     ("environmentalTemp", "车外温度", "°C", "temperature"), ("driving", "行驶状态", None, None)]
-GPS = [("city", "所在城市", None, None), ("address", "车辆地址", None, None), ("gpsTime", "定位时间", None, "timestamp")]
+GPS = [("latitude", "GPS 纬度", "°", None), ("longitude", "GPS 经度", "°", None), ("city", "所在城市", None, None), ("address", "车辆地址", None, None), ("gpsTime", "定位时间", None, "timestamp")]
 
 async def async_setup_entry(hass, entry, async_add_entities):
     c = entry.runtime_data
@@ -35,6 +35,9 @@ class VehicleSensor(VehicleEntity, SensorEntity):
     def native_value(self):
         if self.key == "driving":
             return "未知"
+        if self.key in ("latitude", "longitude"):
+            coordinates = location_coordinates(self.coordinator.data["location"])
+            return coordinates[0 if self.key == "latitude" else 1] if coordinates else None
         source = "location" if self.key in ("city", "address", "gpsTime") else "condition"
         value = self.coordinator.data[source].get(self.key)
         if self.key == "gpsTime":
@@ -55,6 +58,8 @@ class VehicleSensor(VehicleEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self):
+        if self.key in ("latitude", "longitude"):
+            return {"coordinate_system": "WGS84", "gps_time": self.coordinator.data["location"].get("gpsTime")}
         data = self.coordinator.data["condition"]
         if self.key == "driving":
             return {k: data.get(k) for k in ("carStatus", "status", "vehicleSpeed", "lastUpdatedTime")}

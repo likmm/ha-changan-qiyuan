@@ -13,8 +13,8 @@ jobs:
           python-version: '3.13'
       - run: pip install -e '.[test]'
       - run: ruff check . && pytest -q
-      - name: Publish v0.1.0
+      - name: Publish v0.1.1
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v0.1.0 --target "$GITHUB_SHA" --title "v0.1.0" --notes "首个只读版本。支持手动 Token、车况传感器及可选 GPS。尚待真实 HA OS 安装与实车验收。"
+          gh release create v0.1.1 --target "$GITHUB_SHA" --title "v0.1.1" --notes "新增 GPS 纬度、GPS 经度传感器（WGS84），与地图共用校验及转换，定位无效或过期时不可用。"
