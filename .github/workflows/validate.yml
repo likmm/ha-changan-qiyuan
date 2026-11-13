@@ -1,0 +1,29 @@
+name: Validate
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: pip install -e '.[test]'
+      - run: ruff check .
+      - run: pytest -q
+      - run: python -m compileall -q custom_components
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish initial version if absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view v0.1.0; then
+            gh release create v0.1.0 --target "$GITHUB_SHA" --title "v0.1.0" --notes "首个只读版本。支持手动 Token、车况传感器及可选 GPS。尚待真实 HA OS 安装与实车验收。"
+          fi

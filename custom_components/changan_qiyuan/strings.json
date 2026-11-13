@@ -1,0 +1,51 @@
+{
+  "title": "长安启源",
+  "config": {
+    "step": {
+      "user": {
+        "title": "添加长安启源 A05",
+        "data": {
+          "car_id": "车辆 carId",
+          "token": "Access Token（选项中留空则保留）",
+          "gps": "启用 GPS、城市和地址",
+          "interval": "查询间隔（分钟，最低 5）",
+          "pressure_unit": "胎压单位（raw 为未确认原始值）",
+          "pressure_scale": "胎压换算比例"
+        }
+      },
+      "reauth_confirm": {
+        "title": "更新 Access Token",
+        "data": {
+          "token": "Access Token"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "凭据无效，请更新 Token",
+      "cannot_connect": "接口连接或响应异常"
+    },
+    "abort": {
+      "already_configured": "此车辆已配置",
+      "reauth_successful": "认证已更新"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "车辆选项",
+        "data": {
+          "car_id": "车辆 carId",
+          "token": "Access Token（选项中留空则保留）",
+          "gps": "启用 GPS、城市和地址",
+          "interval": "查询间隔（分钟，最低 5）",
+          "pressure_unit": "胎压单位（raw 为未确认原始值）",
+          "pressure_scale": "胎压换算比例"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "凭据无效",
+      "cannot_connect": "连接失败"
+    }
+  }
+}

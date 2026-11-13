@@ -1,0 +1,13 @@
+{
+  "domain": "changan_qiyuan",
+  "name": "长安启源 (Changan Qiyuan)",
+  "version": "0.1.0",
+  "config_flow": true,
+  "documentation": "https://github.com/likmm/ha-changan-qiyuan",
+  "issue_tracker": "https://github.com/likmm/ha-changan-qiyuan/issues",
+  "codeowners": [
+    "@likmm"
+  ],
+  "iot_class": "cloud_polling",
+  "requirements": []
+}
