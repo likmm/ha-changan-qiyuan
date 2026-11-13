@@ -18,8 +18,8 @@ def fresh(value):
     return parsed is not None and -300 <= (datetime.now(parsed.tzinfo)-parsed).total_seconds() <= 1800
 
 def location_coordinates(data):
-    """Return validated, fresh WGS84 coordinates or no location."""
-    if data.get("validGps") is not True or not fresh(data.get("gpsTime")):
+    """Return the last valid WGS84 fix, regardless of its age."""
+    if data.get("validGps") is not True:
         return None
     try:
         lat, lon = float(data["lat"]), float(data["lng"])
@@ -48,6 +48,11 @@ class Coordinator(DataUpdateCoordinator):
                     raise
                 except ApiError:
                     location_status = "request_failed"
+            if location_status != "disabled" and location_coordinates(location) is None:
+                previous = (self.data or {}).get("location", {})
+                if location_coordinates(previous) is not None:
+                    location = previous
+                    location_status = "last_valid_fix"
             return {"condition": condition, "location": location, "location_status": location_status}
         except AuthError:
             raise ConfigEntryAuthFailed("Update credentials") from None

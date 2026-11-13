@@ -1,7 +1,7 @@
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.components.device_tracker import SourceType
 from .entity import VehicleEntity
-from .coordinator import location_coordinates
+from .coordinator import location_coordinates, fresh
 
 async def async_setup_entry(hass, entry, async_add_entities):
     if entry.options.get("gps", entry.data.get("gps", False)):
@@ -26,3 +26,9 @@ class VehicleTracker(VehicleEntity, TrackerEntity):
     @property
     def longitude(self):
         return self.coordinates[1] if self.coordinates else None
+
+    @property
+    def extra_state_attributes(self):
+        data = self.coordinator.data["location"]
+        return {"gps_time": data.get("gpsTime"), "stale": not fresh(data.get("gpsTime")),
+                "location_status": self.coordinator.data.get("location_status", "unknown")}
